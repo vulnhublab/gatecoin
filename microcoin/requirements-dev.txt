@@ -1,0 +1,6 @@
+pytest>=2.7.2,!=3.3.*
+bumpversion
+eth-tester==0.1.0b5
+mock
+requests_mock
+populus>=2.2.0

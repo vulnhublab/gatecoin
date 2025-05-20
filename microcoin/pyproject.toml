@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "microcoin"
+version = "0.1.0"  # Replace with a fixed version or implement dynamic versioning below
+description = "µGateCoin is an off-chain, cheap, scalable and low-latency micropayment solution."
+authors = [
+    { name = "KhulnaSoft, Lab.", email = "dev.sulaiman@icloud.com" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+    # requirements.txt will be referenced separately; can be listed here too
+]
+
+[project.optional-dependencies]
+dev = [
+    # requirements-dev.txt will be referenced separately; can be listed here too
+]
+
+[project.urls]
+Homepage = "https://github.com/gatecoin/gatecoin"
+
+[tool.setuptools]
+packages = ["microcoin"]  # You can use setuptools.find if needed
+
+[tool.setuptools.package-data]
+microcoin = [
+    "data/contracts.json",
+    "webui/js/*",
+    "webui/index.html",
+    "webui/microcoin/dist/umd/microcoin.js",
+    "VERSION"
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "microcoin.version.__version__" }  # Optional, see below
+

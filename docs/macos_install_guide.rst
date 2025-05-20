@@ -1,0 +1,78 @@
+:orphan:
+
+.. _macos_development_setup:
+
+Development Setup on macOS
+==========================
+
+.. :highlight: bash
+
+The following instructions will guide you from a clean installation of macOS to a working source checkout of gatecoin. Make sure that you are on OSX 10.12 or higher. This is needed since gatecoin uses the MONOTONICK_CLOCK_RAW attribute as seen `here <https://github.com/gatecoin/gatecoin/issues/4679#issuecomment-526128654>`__
+
+#. Install C/C++ compiler infrastructure::
+
+    $ xcode-select --install
+
+   * Click "Install" then "Agree", wait for installation to complete
+
+#. Install `Homebrew`_ (a macOS package manager)::
+
+    $ /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+   * Follow the instructions
+
+#. Obtain a MONOTONIC_CLOCK_RAW compatible python version
+
+   The precompiled Python versions for download on python.org are built on a too old macOS version which are not compatible with ``MONOTONIC_CLOCK_RAW``. As such you will have to manually obtain a python binary that supports it. There are three ways to achieve this:
+
+   * Use brew
+   * Use `pyenv <https://realpython.com/intro-to-pyenv/>`__
+   * Use `pythonz <https://github.com/saghul/pythonz>`__
+
+#. Install system packages needed for :code:`gatecoin` and its dependencies::
+
+    $ brew install automake gmp leveldb libffi libtool openssl pkg-config
+
+#. Install `pip`_ (a Python package manager)::
+
+    $ sudo easy_install pip
+
+#. Install `virtualenv`_::
+
+    $ sudo pip install virtualenv
+
+#. Create a virtualenv for gatecoin (requires python3.8)::
+
+    $ virtualenv --python=python3.8 venv-gatecoin
+
+#. "Activate" the virtualenv::
+
+    $ source venv-gatecoin/bin/activate
+
+#. Clone the gatecoin repository::
+
+    $ git clone https://github.com/gatecoin/gatecoin.git
+
+#. Install the dependencies and make gatecoin available inside the virtualenv::
+
+    $ cd gatecoin
+    $ make install-dev
+
+Now you have a working source installation of Gatecoin.
+To actually use it you also need an `Ethereum client`_, which can be installed as follows::
+
+    $ brew tap ethereum/ethereum
+    $ brew install ethereum
+
+The installation should now be complete. To ensure your setup is working correctly you can use the
+:code:`smoketest` command::
+
+    $ gatecoin smoketest
+
+
+:ref:`Return to the installation guide <running_gatecoin>`
+
+.. _Homebrew: http://brew.sh
+.. _pip: https://pip.pypa.io/en/stable/
+.. _virtualenv: https://virtualenv.pypa.io
+.. _Ethereum client: https://github.com/ethereum/go-ethereum/

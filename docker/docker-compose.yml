@@ -1,0 +1,104 @@
+version: '2'
+services:
+    web3:
+        image: parity/parity:beta
+        restart: always
+        volumes:
+            - ~/.local/share/io.parity.ethereum.ropsten:/mnt
+        ports:
+            - "127.0.0.1:8080:8080"
+            - "127.0.0.1:8180:8180"
+            - "127.0.0.1:8545:8545"
+            - "127.0.0.1:8546:8546"
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+        command: --base-path /mnt --chain ropsten --geth --no-warp --unsafe-expose --ntp-servers pool.ntp.org
+
+    nginx:
+        build: ./nginx
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./letsencrypt/etc:/etc/letsencrypt:ro
+            - ./letsencrypt/html:/tmp/letsencrypt:ro
+            - ../microcoin/webui/:/app/web/:ro
+            - ./uwsgi/:/app/landing/:ro
+        links:
+            - demo
+            - wikidemo
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+        environment:
+            - LE_RENEW_HOOK=docker kill -s HUP @CONTAINER_NAME@
+
+    demo:
+        build: ./uwsgi
+        volumes:
+            - ./files/demo/:/home/user/.config/microcoin
+            - ./files/demo/key.json:/tmp/key.json:ro
+            - ../:/microcoin
+            - ../pw.txt:/tmp/password.txt:ro
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+        environment:
+            - PATH=/home/user/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+        working_dir: /microcoin
+        entrypoint: /bin/sh
+        command:
+            - -c
+            - pip install --user -e . && python3 -m microcoin.examples.demo_proxy --rpc-provider "http://web3:8545" --private-key "/tmp/key.json" --private-key-password-file "/tmp/password.txt" start --host "0.0.0.0" --port "9000"
+
+    wikidemo:
+        build: ./uwsgi
+        volumes:
+            - ./files/wikidemo/:/home/user/.config/microcoin
+            - ./files/wikidemo/key.json:/tmp/key.json:ro
+            - ../:/microcoin
+            - ../pw.txt:/tmp/password.txt:ro
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+        environment:
+            - PATH=/home/user/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+        working_dir: /microcoin
+        entrypoint: /bin/sh
+        command:
+            - -c
+            - pip install --user -e . && python3 -m microcoin.examples.wikipaydia --rpc-provider http://web3:8545 --private-key /tmp/key.json --private-key-password-file /tmp/password.txt start --host "0.0.0.0" --port "9000"
+
+    letsencrypt:
+        image: kvaps/letsencrypt-webroot
+        volumes:
+            - ./letsencrypt/etc:/etc/letsencrypt
+            - ./letsencrypt/html:/tmp/letsencrypt
+            - /var/run/docker.sock:/var/run/docker.sock
+        links:
+            - nginx
+        environment:
+            - DOMAINS=demo.micro.gatecoin.network wikidemo.micro.gatecoin.network
+            - EMAIL=info@brainbot.com
+            - WEBROOT_PATH=/tmp/letsencrypt
+            - EXP_LIMIT=30
+            - CHECK_FREQ=1
+
+    webui_build:
+        image: node
+        restart: "no"
+        volumes:
+            - ../microcoin/webui/microcoin/:/app
+        working_dir: /app
+        user: "1000:1000"
+        entrypoint: /bin/sh
+        command:
+            - -c
+            - npm i

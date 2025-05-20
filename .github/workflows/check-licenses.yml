@@ -1,0 +1,34 @@
+name: Check Licenses
+on:
+  pull_request:
+    paths:
+      - 'requirements/requirements.txt'
+      - 'requirements/requirements.in'
+
+permissions:
+  contents: read
+
+jobs:
+  license-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.9]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: install dependencies
+        run: |
+          python3 -m venv .venv-gatecoin
+          source .venv-gatecoin/bin/activate
+          make install
+          pip install -U pip setuptools
+          pip install liccheck
+      - name: check versions
+        run: |
+          source .venv-gatecoin/bin/activate
+          liccheck -r requirements/requirements.txt

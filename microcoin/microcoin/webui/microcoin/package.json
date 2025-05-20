@@ -1,0 +1,71 @@
+{
+  "name": "@gatecoin_network/microcoin",
+  "version": "0.2.5",
+  "description": "Javascript/Typescript client library for µGateCoin (MicroCoin), a payment channels implementation for the Ethereum blockchain",
+  "author": "KhulnaSoft, Lab. <dev.sulaiman@icloud.com>",
+  "license": "MIT",
+  "homepage": "https://micro.gatecoin.network",
+  "repository": "https://github.com/gatecoin/microcoin/tree/master/microcoin/microcoin/webui/microcoin/",
+  "bugs": "https://github.com/gatecoin/microcoin/issues",
+  "keywords": [
+    "microcoin",
+    "µgateCoin",
+    "ugatecoin",
+    "gatecoin",
+    "ethereum",
+    "blockchain",
+    "web3"
+  ],
+  "contributors": [
+    "André Vitor de Lima Matos <andre@brainbot.li>"
+  ],
+  "scripts": {
+    "clean": "rimraf dist/ docs/",
+    "build": "npm run build:esnext && npm run build:esm && npm run build:cjs && npm run build:umd && npm run build:umd:min",
+    "build:esnext": "tsc --module esnext --target esnext --outDir dist/esnext",
+    "build:esm": "tsc --module es2015 --target es5 --outDir dist/esm",
+    "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
+    "build:umd": "webpack",
+    "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 -o microcoin.min.js -- microcoin.js && gzip microcoin.min.js -c > microcoin.min.js.gz",
+    "docs": "typedoc --theme markdown --mode file --excludePrivate --out docs src/index.ts",
+    "prepare": "npm run clean && npm run build && npm run docs",
+    "test": "TS_NODE_PROJECT=./ mocha -b -t 20000 -r ts-node/register tests/**/*.ts"
+  },
+  "main": "dist/cjs/index.js",
+  "jsnext:main": "dist/esnext/index.js",
+  "module": "dist/esm/index.js",
+  "unpkg": "dist/umd/microcoin.min.js",
+  "types": "dist/esnext/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@digix/tempo": "^0.2.0",
+    "@types/chai": "^4.0.10",
+    "@types/chai-as-promised": "^7.1.0",
+    "@types/core-js": "^0.9.43",
+    "@types/mocha": "^2.2.45",
+    "@types/node": "^8.5.2",
+    "@types/lodash": "^4.14.102",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "ethereumjs-util": "^5.1.2",
+    "ganache-cli": "^6.0.3",
+    "mocha": "^4.0.1",
+    "rimraf": "^2.6.2",
+    "ts-node": "^4.1.0",
+    "typedoc": "^0.9.0",
+    "typedoc-plugin-markdown": "^1.0.11",
+    "typescript": "^2.6.1",
+    "uglify-js": "^3.1.10",
+    "web3-typescript-typings": "^0.7.2",
+    "webpack": "^3.8.1"
+  },
+  "dependencies": {
+    "eth-sig-util": "^1.4.0",
+    "web3": "<0.99"
+  }
+}

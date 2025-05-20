@@ -1,0 +1,315 @@
+from typing import Callable
+
+import pytest
+from eth_tester.exceptions import TransactionFailed
+from web3.contract import Contract
+from web3.exceptions import ValidationError
+
+from gatecoin_contracts.constants import (
+    EMPTY_ADDRESS,
+    EVENT_TOKEN_NETWORK_CREATED,
+    TEST_SETTLE_TIMEOUT,
+)
+from gatecoin_contracts.tests.utils import call_and_transact
+from gatecoin_contracts.tests.utils.constants import DEPLOYER_ADDRESS, NOT_ADDRESS
+from gatecoin_contracts.utils.events import check_token_network_created
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_constructor_call(
+    get_token_network_registry: Callable,
+    secret_registry_contract: Contract,
+    get_accounts: Callable,
+) -> None:
+    """Try to create a TokenNetworkRegistry with various wrong arguments."""
+    A = get_accounts(1)[0]
+
+    # failure with no arguments
+    with pytest.raises(TypeError):
+        get_token_network_registry()
+
+    # failure with an int instead of the SecretRegistry's address
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address=3,
+            _max_token_networks=1,
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    # failure with zero instead of the SecretRegistry's address
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address=0,
+            _max_token_networks=1,
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    # failure with the empty string instead of the SecretRegistry's address
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address="",
+            _max_token_networks=1,
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    # failure with an odd-length hex string instead of the SecretRegistry's address
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address=NOT_ADDRESS,
+            _max_token_networks=1,
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    # failure with Ethereum accounts that doesn't look like a SecretRegistry
+    with pytest.raises(TransactionFailed, match="TNR: invalid SR address"):
+        get_token_network_registry(
+            _secret_registry_address=EMPTY_ADDRESS,
+            _max_token_networks=1,
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+    with pytest.raises(TransactionFailed, match="TNR: invalid SR"):
+        get_token_network_registry(
+            _secret_registry_address=A,
+            _max_token_networks=1,
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    # failures with nonsense token number limits
+    with pytest.raises(TransactionFailed, match="TNR: invalid TN limit"):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _max_token_networks=0,
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _max_token_networks="limit",
+            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    get_token_network_registry(
+        _secret_registry_address=secret_registry_contract.address,
+        _max_token_networks=1,
+        _settle_timeout=TEST_SETTLE_TIMEOUT,
+    )
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_constructor_call_state(
+    get_token_network_registry: Callable, secret_registry_contract: Contract
+) -> None:
+    """The constructor should set the parameters into the storage of the contract"""
+
+    registry = get_token_network_registry(
+        _secret_registry_address=secret_registry_contract.address,
+        _max_token_networks=30,
+        _settle_timeout=TEST_SETTLE_TIMEOUT,
+    )
+    assert secret_registry_contract.address == registry.functions.secret_registry_address().call()
+    assert 30 == registry.functions.max_token_networks().call()
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_create_erc20_token_network_call(
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    get_accounts: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
+    """Calling createERC20TokenNetwork() with various wrong arguments"""
+
+    A = get_accounts(1)[0]
+    fake_token_contract = token_network_registry_contract.address
+
+    # failure with no arguments
+    with pytest.raises(ValidationError):
+        token_network_registry_contract.functions.createERC20TokenNetwork()
+
+    # failures with integers instead of a Token contract address
+    with pytest.raises(ValidationError):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            3, channel_participant_deposit_limit, token_network_deposit_limit
+        )
+    with pytest.raises(ValidationError):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            0, channel_participant_deposit_limit, token_network_deposit_limit
+        )
+
+    # failures with strings that are not addresses
+    with pytest.raises(ValidationError):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            "", channel_participant_deposit_limit, token_network_deposit_limit
+        )
+    with pytest.raises(ValidationError):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            NOT_ADDRESS, channel_participant_deposit_limit, token_network_deposit_limit
+        )
+
+    # failures with addresses where no Token contract can be found
+    with pytest.raises(TransactionFailed, match="TN: invalid token address"):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            EMPTY_ADDRESS,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).call()
+    with pytest.raises(TransactionFailed, match="TN: invalid token contract"):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            A, channel_participant_deposit_limit, token_network_deposit_limit
+        ).call()
+    with pytest.raises(TransactionFailed):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            fake_token_contract,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).call()
+
+    # failures with invalid deposit limits
+    with pytest.raises(TransactionFailed, match="TN: invalid participant limit"):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address, 0, token_network_deposit_limit
+        ).call({"from": DEPLOYER_ADDRESS})
+
+    with pytest.raises(TransactionFailed, match="TN: invalid network deposit limit"):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address, channel_participant_deposit_limit, 0
+        ).call({"from": DEPLOYER_ADDRESS})
+
+    with pytest.raises(TransactionFailed, match="TN: invalid deposit limits"):
+        # fails because token_network_deposit_limit is smaller than
+        # channel_participant_deposit_limit.
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            token_network_deposit_limit,
+            channel_participant_deposit_limit,
+        ).call({"from": DEPLOYER_ADDRESS})
+
+    # see a success to make sure above tests were meaningful
+    call_and_transact(
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_create_erc20_token_network(
+    register_token_network: Callable,
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
+    """Create a TokenNetwork through a TokenNetworkRegistry"""
+
+    assert (
+        token_network_registry_contract.functions.token_to_token_networks(
+            custom_token.address
+        ).call()
+        == EMPTY_ADDRESS
+    )
+
+    token_network = register_token_network(
+        token_network_registry=token_network_registry_contract,
+        token_address=custom_token.address,
+        channel_participant_deposit_limit=channel_participant_deposit_limit,
+        token_network_deposit_limit=token_network_deposit_limit,
+    )
+
+    assert token_network.functions.token().call() == custom_token.address
+    assert (
+        token_network_registry_contract.functions.token_to_token_networks(
+            custom_token.address
+        ).call()
+        == token_network.address
+    )
+
+    secret_registry = token_network_registry_contract.functions.secret_registry_address().call()
+    assert token_network.functions.secret_registry().call() == secret_registry
+
+    settle_timeout = token_network_registry_contract.functions.settle_timeout().call()
+    assert token_network.functions.settle_timeout().call() == settle_timeout
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_create_erc20_token_network_twice_fails(
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
+    """Only one TokenNetwork should be creatable from a TokenNetworkRegistry"""
+
+    call_and_transact(
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
+
+    with pytest.raises(TransactionFailed, match="TNR: registry full"):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).call({"from": DEPLOYER_ADDRESS})
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_events(
+    register_token_network: Callable,
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    event_handler: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
+    """TokenNetworkRegistry should raise an event when deploying a new TokenNetwork"""
+
+    ev_handler = event_handler(token_network_registry_contract)
+
+    new_token_network = register_token_network(
+        token_network_registry=token_network_registry_contract,
+        token_address=custom_token.address,
+        channel_participant_deposit_limit=channel_participant_deposit_limit,
+        token_network_deposit_limit=token_network_deposit_limit,
+    )
+
+    ev_handler.add(
+        None,
+        EVENT_TOKEN_NETWORK_CREATED,
+        check_token_network_created(custom_token.address, new_token_network.address),
+    )
+    ev_handler.check()
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_change_owner(
+    token_network_registry_contract: Contract,
+    get_accounts: Callable,
+) -> None:
+    """Address must be allowed to remove limits after if became owner"""
+    new_controller = get_accounts(1)[0]
+
+    # Must fail when controller is still DEPLOYER_ADDRESS
+    with pytest.raises(TransactionFailed, match="Can only be called by controller"):
+        call_and_transact(
+            token_network_registry_contract.functions.removeLimits(),
+            {"from": new_controller},
+        )
+
+    # Must succeed after change of controller
+    call_and_transact(
+        token_network_registry_contract.functions.changeController(new_controller),
+        {"from": DEPLOYER_ADDRESS},
+    )
+    call_and_transact(
+        token_network_registry_contract.functions.removeLimits(),
+        {"from": new_controller},
+    )

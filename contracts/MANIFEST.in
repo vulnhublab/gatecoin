@@ -1,0 +1,25 @@
+include gatecoin_contracts/CHANGELOG.md
+include requirements.txt
+include gatecoin_contracts/constants.py
+include gatecoin_contracts/data*/contracts.json
+include gatecoin_contracts/data*/deployment_kovan.json
+include gatecoin_contracts/data*/deployment_goerli.json
+include gatecoin_contracts/data*/deployment_goerli_unstable.json
+include gatecoin_contracts/data*/deployment_rinkeby.json
+include gatecoin_contracts/data*/deployment_rinkeby-arbitrum.json
+include gatecoin_contracts/data*/deployment_ropsten.json
+include gatecoin_contracts/data*/deployment_mainnet.json
+include gatecoin_contracts/data*/deployment_arbitrum-one.json
+include gatecoin_contracts/data*/deployment_services_kovan.json
+include gatecoin_contracts/data*/deployment_services_goerli.json
+include gatecoin_contracts/data*/deployment_services_goerli_unstable.json
+include gatecoin_contracts/data*/deployment_services_rinkeby.json
+include gatecoin_contracts/data*/deployment_services_rinkeby-arbitrum.json
+include gatecoin_contracts/data*/deployment_services_ropsten.json
+include gatecoin_contracts/data*/deployment_services_mainnet.json
+include gatecoin_contracts/data*/deployment_services_arbitrum-one.json
+include gatecoin_contracts/data*/gas.json
+recursive-include gatecoin_contracts/data*/source *
+prune gatecoin_contracts/contracts
+prune gatecoin_contracts/contracts_without_limits
+prune gatecoin_contracts/contracts_template

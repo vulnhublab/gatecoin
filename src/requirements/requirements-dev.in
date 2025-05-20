@@ -1,0 +1,61 @@
+# We need to include the compiled base requirements to make sure we're not pulling in
+# incompatible dependencies
+-r requirements.txt
+
+# split out to allow faster building of docs and to not require python 3.7
+# since they don't support it in RTD yet: https://github.com/rtfd/readthedocs.org/issues/4713
+# FIXME: Temporarily remove docs requirements from dev until releases removes the pin of
+# `semantic-version<2.7`. See: https://github.com/bitprophet/releases/pull/86
+# -r requirements-docs.txt
+
+# Dependencies
+pip-tools~=6.6.0  # this is used by 'deps.py'
+
+# Linting
+flake8
+flake8-comprehensions
+flake8-bugbear
+flake8-tuple
+isort
+pylint
+mypy
+black==22.3.0
+types-requests
+types-flask
+types-pkg_resources
+types-toml
+types-PyYAML
+types-cachetools
+types-filelock
+
+# Testing
+pytest
+pytest-random
+pytest-select
+pytest-xdist
+grequests
+pexpect
+hypothesis
+gatecoin-api-client>=1.1.1
+responses
+flaky
+Faker
+
+# Debugging
+ipython
+pdbpp
+colour
+py-spy
+nest-asyncio
+
+# Continuous Integration
+coverage
+
+# Release
+bump2version
+
+# Test support
+matrix-synapse
+
+# Mac build failure
+importlib-metadata<4.12

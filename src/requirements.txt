@@ -1,0 +1,2 @@
+# Fallback for tools expecting this file in the project root
+-r requirements/requirements.txt
