@@ -1,0 +1,25 @@
+[report]
+exclude_lines =
+	pragma: no cover
+	pragma: no unittest
+	if TYPE_CHECKING:
+	def __repr__
+	raise NotImplementedError
+	assert not isinstance
+	typecheck
+
+[run]
+branch = True
+include =
+	gatecoin/*.py
+	gatecoin/**/*.py
+omit =
+	gatecoin/tests/**
+
+	# Modules that are not expected to be unit tested
+	gatecoin/app.py
+	gatecoin/gatecoin_service.py
+	gatecoin/ui/**
+	gatecoin/network/proxies/**
+	gatecoin/network/transport/**
+concurrency = gevent

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, arbitrum ]
+  pull_request:
+    branches: [ master, arbitrum ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4.1.0
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          ~/venv
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-v2-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-v2-
+    - name: Install dependencies
+      run: |
+        if [ ! -x venv ]; then python3 -m venv venv; fi
+        source ./venv/bin/activate
+        python -m pip install --upgrade pip wheel codecov
+        make install-dev
+        make verify_contracts
+    - name: Lint
+      run: |
+        source ./venv/bin/activate
+        make lint
+    - name: Test
+      run: |
+        source ./venv/bin/activate
+        pytest --cov=./ gatecoin_contracts/tests/ -v -n 2 --cov-config setup.cfg
+    - name: Codecov
+      run: |
+        source ./venv/bin/activate
+        codecov

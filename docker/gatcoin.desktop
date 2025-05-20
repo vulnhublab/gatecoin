@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Gatecoin
+Version=XXVERSIONXX
+Exec=gatecoin
+Icon=gatecoin
+Type=Application
+StartupNotify=true
