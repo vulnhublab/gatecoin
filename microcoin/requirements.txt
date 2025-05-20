@@ -3,14 +3,14 @@ eth-utils>=0.7.4,<=0.7.9
 eth-keyfile==0.4.0
 eth-keys==0.1.0-beta.3
 coincurve>=7.1.0
-eth-abi==0.5.0
+eth-abi==5.0.1
 rlp>=0.4.3,<0.6.0
 flask>=0.12
 flask_httpauth
 flask_restful
 ethereum<2.0.0,>=1.6.1
 web3==v4.0.0-beta.4
-gevent==1.2.2
+gevent==23.9.0
 click
 requests
 werkzeug
