@@ -4,7 +4,7 @@
 #
 #    'requirements/deps compile' (for details see requirements/README)
 #
-aiohttp==3.7.4.post0
+aiohttp==3.11.0b0
     # via
     #   -r requirements.txt
     #   web3
@@ -80,7 +80,7 @@ canonicaljson==1.6.1
     #   -r requirements.txt
     #   matrix-synapse
     #   signedjson
-certifi==2019.3.9
+certifi==2024.7.4
     # via
     #   -r requirements.txt
     #   requests
@@ -122,7 +122,7 @@ constantly==15.1.0
     # via twisted
 coverage==6.1.1
     # via -r requirements-dev.in
-cryptography==3.4.7
+cryptography==44.0.1
     # via
     #   -r requirements.txt
     #   aiortc
@@ -144,13 +144,13 @@ dnspython==2.1.0
     #   aioice
 eciespy==0.3.11
     # via -r requirements.txt
-eth-abi==2.1.0
+eth-abi==5.0.1
     # via
     #   -r requirements.txt
     #   eth-account
     #   gatecoin-contracts
     #   web3
-eth-account==0.5.7
+eth-account==0.5.9
     # via
     #   -r requirements.txt
     #   web3
@@ -410,7 +410,7 @@ phonenumbers==8.10.13
     # via matrix-synapse
 pickleshare==0.7.5
     # via ipython
-pillow==9.0.1
+pillow==10.3.0
     # via matrix-synapse
 pip-tools==6.6.0
     # via -r requirements-dev.in
@@ -424,7 +424,7 @@ prometheus-client==0.8.0
     # via matrix-synapse
 prompt-toolkit==3.0.5
     # via ipython
-protobuf==3.15.0
+protobuf==3.18.3
     # via
     #   -r requirements.txt
     #   web3
@@ -436,7 +436,7 @@ ptyprocess==0.6.0
     # via pexpect
 pure-eval==0.2.2
     # via stack-data
-py==1.10.0
+py==1.11.0
     # via pytest
 py-solc-x==1.1.0
     # via
@@ -619,7 +619,7 @@ toolz==0.9.0
     # via
     #   -r requirements.txt
     #   cytoolz
-tornado==6.1
+tornado==6.4.2
     # via
     #   -r requirements.txt
     #   jaeger-client
@@ -630,7 +630,7 @@ traitlets==5.1.1
     #   matplotlib-inline
 treq==22.1.0
     # via matrix-synapse
-twisted==21.2.0
+twisted==24.7.0rc1
     # via
     #   matrix-synapse
     #   treq
